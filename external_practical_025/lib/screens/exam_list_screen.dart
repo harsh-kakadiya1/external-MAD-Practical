@@ -63,6 +63,26 @@ class _ExamListScreenState extends State<ExamListScreen> {
     }
   }
 
+  Exam? _getNextExam() {
+    final now = DateTime.now();
+    final upcomingExams = exams.where((exam) {
+      return exam.date.isAfter(now) ||
+          (exam.date.year == now.year &&
+              exam.date.month == now.month &&
+              exam.date.day == now.day);
+    }).toList();
+
+    if (upcomingExams.isEmpty) return null;
+    return upcomingExams.first;
+  }
+
+  int _getDaysUntilExam(DateTime examDate) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final exam = DateTime(examDate.year, examDate.month, examDate.day);
+    return exam.difference(today).inDays;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,6 +133,8 @@ class _ExamListScreenState extends State<ExamListScreen> {
               ),
             ),
           ),
+          if (!isLoading && exams.isNotEmpty && _getNextExam() != null)
+            _buildCountdownBanner(_getNextExam()!),
           if (_searchController.text.isNotEmpty &&
               !isLoading &&
               exams.isNotEmpty)
@@ -203,8 +225,13 @@ class _ExamListScreenState extends State<ExamListScreen> {
                     padding: const EdgeInsets.all(16),
                     itemCount: filteredExams.length,
                     itemBuilder: (context, index) {
+                      final currentExam = filteredExams[index];
+                      final nextExam = _getNextExam();
+                      final isNextExam =
+                          nextExam != null && currentExam.id == nextExam.id;
+
                       return Dismissible(
-                        key: Key(filteredExams[index].id),
+                        key: Key(currentExam.id),
                         direction: DismissDirection.endToStart,
                         background: Container(
                           margin: const EdgeInsets.only(bottom: 12),
@@ -221,7 +248,7 @@ class _ExamListScreenState extends State<ExamListScreen> {
                           ),
                         ),
                         onDismissed: (direction) async {
-                          final deletedExam = filteredExams[index];
+                          final deletedExam = currentExam;
                           await StorageHelper.deleteExam(deletedExam.id);
                           setState(() {
                             exams.removeWhere((e) => e.id == deletedExam.id);
@@ -237,7 +264,7 @@ class _ExamListScreenState extends State<ExamListScreen> {
                             ),
                           );
                         },
-                        child: ExamCard(exam: filteredExams[index]),
+                        child: ExamCard(exam: currentExam, isNext: isNextExam),
                       );
                     },
                   ),
@@ -249,6 +276,81 @@ class _ExamListScreenState extends State<ExamListScreen> {
         elevation: 4,
         onPressed: _navigateToAddExam,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
+      ),
+    );
+  }
+
+  Widget _buildCountdownBanner(Exam nextExam) {
+    final daysUntil = _getDaysUntilExam(nextExam.date);
+    String countdownText;
+
+    if (daysUntil == 0) {
+      countdownText = 'Today';
+    } else if (daysUntil == 1) {
+      countdownText = 'Tomorrow';
+    } else {
+      countdownText = 'in $daysUntil days';
+    }
+
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Colors.black, Color(0xFF424242)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.notifications_active,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Next Exam $countdownText',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${nextExam.courseCode} - ${nextExam.courseName}',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 14,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
