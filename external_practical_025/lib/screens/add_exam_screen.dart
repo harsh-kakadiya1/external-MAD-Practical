@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class AddExamScreen extends StatefulWidget {
   const AddExamScreen({super.key});
@@ -8,6 +9,108 @@ class AddExamScreen extends StatefulWidget {
 }
 
 class _AddExamScreenState extends State<AddExamScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _courseCodeController = TextEditingController();
+  final _courseNameController = TextEditingController();
+  final _venueController = TextEditingController();
+
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
+  String? _documentPath;
+
+  @override
+  void dispose() {
+    _courseCodeController.dispose();
+    _courseNameController.dispose();
+    _venueController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2026, 12, 31),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Colors.black,
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> _selectTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Colors.black,
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
+  }
+
+  void _saveExam() {
+    if (_formKey.currentState!.validate()) {
+      if (_selectedDate == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select exam date'),
+            backgroundColor: Colors.black,
+          ),
+        );
+        return;
+      }
+
+      if (_selectedTime == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select exam time'),
+            backgroundColor: Colors.black,
+          ),
+        );
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Exam saved successfully!'),
+          backgroundColor: Colors.black,
+        ),
+      );
+
+      Navigator.pop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,36 +128,51 @@ class _AddExamScreenState extends State<AddExamScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 8),
-              _buildSectionTitle('Course Details'),
-              const SizedBox(height: 16),
-              _buildInputField('Course Code', 'e.g., CS301'),
-              const SizedBox(height: 16),
-              _buildInputField('Course Name', 'e.g., Database Management'),
-              const SizedBox(height: 24),
-              _buildSectionTitle('Exam Schedule'),
-              const SizedBox(height: 16),
-              _buildDateField('Date'),
-              const SizedBox(height: 16),
-              _buildTimeField('Time'),
-              const SizedBox(height: 24),
-              _buildSectionTitle('Venue'),
-              const SizedBox(height: 16),
-              _buildInputField('Venue', 'e.g., Hall A, Room 203'),
-              const SizedBox(height: 24),
-              _buildSectionTitle('Documents'),
-              const SizedBox(height: 16),
-              _buildDocumentUpload(),
-              const SizedBox(height: 32),
-              _buildSaveButton(),
-              const SizedBox(height: 16),
-            ],
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                _buildSectionTitle('Course Details'),
+                const SizedBox(height: 16),
+                _buildInputField(
+                  'Course Code',
+                  'e.g., CS301',
+                  _courseCodeController,
+                ),
+                const SizedBox(height: 16),
+                _buildInputField(
+                  'Course Name',
+                  'e.g., Database Management',
+                  _courseNameController,
+                ),
+                const SizedBox(height: 24),
+                _buildSectionTitle('Exam Schedule'),
+                const SizedBox(height: 16),
+                _buildDateField(),
+                const SizedBox(height: 16),
+                _buildTimeField(),
+                const SizedBox(height: 24),
+                _buildSectionTitle('Venue'),
+                const SizedBox(height: 16),
+                _buildInputField(
+                  'Venue',
+                  'e.g., Hall A, Room 203',
+                  _venueController,
+                ),
+                const SizedBox(height: 24),
+                _buildSectionTitle('Documents'),
+                const SizedBox(height: 16),
+                _buildDocumentUpload(),
+                const SizedBox(height: 32),
+                _buildSaveButton(),
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         ),
       ),
@@ -72,7 +190,11 @@ class _AddExamScreenState extends State<AddExamScreen> {
     );
   }
 
-  Widget _buildInputField(String label, String hint) {
+  Widget _buildInputField(
+    String label,
+    String hint,
+    TextEditingController controller,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -85,7 +207,14 @@ class _AddExamScreenState extends State<AddExamScreen> {
           ),
         ],
       ),
-      child: TextField(
+      child: TextFormField(
+        controller: controller,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter $label';
+          }
+          return null;
+        },
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
@@ -104,7 +233,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
     );
   }
 
-  Widget _buildDateField(String label) {
+  Widget _buildDateField() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -117,13 +246,18 @@ class _AddExamScreenState extends State<AddExamScreen> {
           ),
         ],
       ),
-      child: TextField(
+      child: TextFormField(
         readOnly: true,
+        onTap: _selectDate,
         decoration: InputDecoration(
-          labelText: label,
-          hintText: 'Select date',
+          labelText: 'Date',
+          hintText: _selectedDate == null
+              ? 'Select date'
+              : DateFormat('MMM dd, yyyy').format(_selectedDate!),
           labelStyle: TextStyle(color: Colors.grey[700]),
-          hintStyle: TextStyle(color: Colors.grey[400]),
+          hintStyle: TextStyle(
+            color: _selectedDate == null ? Colors.grey[400] : Colors.black87,
+          ),
           suffixIcon: Icon(Icons.calendar_today, color: Colors.grey[600]),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -138,7 +272,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
     );
   }
 
-  Widget _buildTimeField(String label) {
+  Widget _buildTimeField() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -151,13 +285,18 @@ class _AddExamScreenState extends State<AddExamScreen> {
           ),
         ],
       ),
-      child: TextField(
+      child: TextFormField(
         readOnly: true,
+        onTap: _selectTime,
         decoration: InputDecoration(
-          labelText: label,
-          hintText: 'Select time',
+          labelText: 'Time',
+          hintText: _selectedTime == null
+              ? 'Select time'
+              : _selectedTime!.format(context),
           labelStyle: TextStyle(color: Colors.grey[700]),
-          hintStyle: TextStyle(color: Colors.grey[400]),
+          hintStyle: TextStyle(
+            color: _selectedTime == null ? Colors.grey[400] : Colors.black87,
+          ),
           suffixIcon: Icon(Icons.access_time, color: Colors.grey[600]),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -173,31 +312,59 @@ class _AddExamScreenState extends State<AddExamScreen> {
   }
 
   Widget _buildDocumentUpload() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _documentPath =
+              '/documents/exam_${DateTime.now().millisecondsSinceEpoch}.pdf';
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Document selected'),
+            backgroundColor: Colors.black,
+            duration: Duration(seconds: 1),
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.attach_file, color: Colors.grey[600]),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'Upload Document',
-              style: TextStyle(color: Colors.grey[700], fontSize: 15),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
-          ),
-          Icon(Icons.cloud_upload_outlined, color: Colors.grey[600]),
-        ],
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(
+              _documentPath == null ? Icons.attach_file : Icons.check_circle,
+              color: _documentPath == null ? Colors.grey[600] : Colors.black,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _documentPath == null
+                    ? 'Upload Document (Optional)'
+                    : 'Document Selected',
+                style: TextStyle(
+                  color: _documentPath == null
+                      ? Colors.grey[700]
+                      : Colors.black,
+                  fontSize: 15,
+                  fontWeight: _documentPath == null
+                      ? FontWeight.normal
+                      : FontWeight.w600,
+                ),
+              ),
+            ),
+            Icon(Icons.cloud_upload_outlined, color: Colors.grey[600]),
+          ],
+        ),
       ),
     );
   }
@@ -207,7 +374,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: _saveExam,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.black,
           foregroundColor: Colors.white,
