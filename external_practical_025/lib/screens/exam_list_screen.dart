@@ -111,7 +111,10 @@ class _ExamListScreenState extends State<ExamListScreen> {
                         const SizedBox(height: 8),
                         Text(
                           'Tap + to add your first exam',
-                          style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 14,
+                          ),
                         ),
                       ],
                     ),

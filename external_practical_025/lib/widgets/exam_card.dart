@@ -58,10 +58,7 @@ class ExamCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               exam.courseName,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
             const SizedBox(height: 12),
             Row(
