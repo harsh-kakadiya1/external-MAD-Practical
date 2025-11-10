@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../models/exam.dart';
+import '../utils/storage_helper.dart';
 
 class AddExamScreen extends StatefulWidget {
   const AddExamScreen({super.key});
@@ -78,7 +80,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
     }
   }
 
-  void _saveExam() {
+  void _saveExam() async {
     if (_formKey.currentState!.validate()) {
       if (_selectedDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -100,14 +102,28 @@ class _AddExamScreenState extends State<AddExamScreen> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Exam saved successfully!'),
-          backgroundColor: Colors.black,
-        ),
+      final newExam = Exam(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        courseCode: _courseCodeController.text.trim(),
+        courseName: _courseNameController.text.trim(),
+        date: _selectedDate!,
+        time: _selectedTime!.format(context),
+        venue: _venueController.text.trim(),
+        documentPath: _documentPath,
       );
 
-      Navigator.pop(context);
+      await StorageHelper.addExam(newExam);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Exam saved successfully!'),
+            backgroundColor: Colors.black,
+          ),
+        );
+
+        Navigator.pop(context, true);
+      }
     }
   }
 
