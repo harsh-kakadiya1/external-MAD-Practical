@@ -44,10 +44,12 @@ class _ExamListScreenState extends State<ExamListScreen> {
         filteredExams = exams;
       } else {
         filteredExams = exams.where((exam) {
-          final courseCodeMatch =
-              exam.courseCode.toLowerCase().contains(query.toLowerCase());
-          final courseNameMatch =
-              exam.courseName.toLowerCase().contains(query.toLowerCase());
+          final courseCodeMatch = exam.courseCode.toLowerCase().contains(
+            query.toLowerCase(),
+          );
+          final courseNameMatch = exam.courseName.toLowerCase().contains(
+            query.toLowerCase(),
+          );
           return courseCodeMatch || courseNameMatch;
         }).toList();
       }
@@ -111,7 +113,9 @@ class _ExamListScreenState extends State<ExamListScreen> {
               ),
             ),
           ),
-          if (_searchController.text.isNotEmpty && !isLoading && exams.isNotEmpty)
+          if (_searchController.text.isNotEmpty &&
+              !isLoading &&
+              exams.isNotEmpty)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               color: Colors.grey[200],
@@ -136,107 +140,107 @@ class _ExamListScreenState extends State<ExamListScreen> {
                     child: CircularProgressIndicator(color: Colors.black),
                   )
                 : exams.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.calendar_today_outlined,
-                              size: 80,
-                              color: Colors.grey[300],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No exams scheduled',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Tap + to add your first exam',
-                              style: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.calendar_today_outlined,
+                          size: 80,
+                          color: Colors.grey[300],
                         ),
-                      )
-                    : filteredExams.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.search_off,
-                                  size: 80,
-                                  color: Colors.grey[300],
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No results found',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Try a different search term',
-                                  style: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: filteredExams.length,
-                            itemBuilder: (context, index) {
-                              return Dismissible(
-                                key: Key(filteredExams[index].id),
-                                direction: DismissDirection.endToStart,
-                                background: Container(
-                                  margin: const EdgeInsets.only(bottom: 12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  alignment: Alignment.centerRight,
-                                  padding: const EdgeInsets.only(right: 20),
-                                  child: const Icon(
-                                    Icons.delete,
-                                    color: Colors.white,
-                                    size: 28,
-                                  ),
-                                ),
-                                onDismissed: (direction) async {
-                                  final deletedExam = filteredExams[index];
-                                  await StorageHelper.deleteExam(deletedExam.id);
-                                  setState(() {
-                                    exams.removeWhere((e) => e.id == deletedExam.id);
-                                    filteredExams.removeAt(index);
-                                  });
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        '${deletedExam.courseCode} deleted',
-                                      ),
-                                      backgroundColor: Colors.black,
-                                      duration: const Duration(seconds: 2),
-                                    ),
-                                  );
-                                },
-                                child: ExamCard(exam: filteredExams[index]),
-                              );
-                            },
+                        const SizedBox(height: 16),
+                        Text(
+                          'No exams scheduled',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
                           ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Tap + to add your first exam',
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : filteredExams.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search_off,
+                          size: 80,
+                          color: Colors.grey[300],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No results found',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Try a different search term',
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filteredExams.length,
+                    itemBuilder: (context, index) {
+                      return Dismissible(
+                        key: Key(filteredExams[index].id),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 20),
+                          child: const Icon(
+                            Icons.delete,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                        onDismissed: (direction) async {
+                          final deletedExam = filteredExams[index];
+                          await StorageHelper.deleteExam(deletedExam.id);
+                          setState(() {
+                            exams.removeWhere((e) => e.id == deletedExam.id);
+                            filteredExams.removeAt(index);
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '${deletedExam.courseCode} deleted',
+                              ),
+                              backgroundColor: Colors.black,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        child: ExamCard(exam: filteredExams[index]),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
