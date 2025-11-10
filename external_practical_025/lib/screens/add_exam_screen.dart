@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import '../models/exam.dart';
 import '../utils/storage_helper.dart';
 
@@ -78,6 +81,83 @@ class _AddExamScreenState extends State<AddExamScreen> {
         _selectedTime = picked;
       });
     }
+  }
+
+  Future<void> _pickDocument() async {
+    try {
+      final result = await FilePicker.platform.pickFiles();
+
+      if (result != null &&
+          result.files.isNotEmpty &&
+          result.files.first.path != null) {
+        final pickedFile = result.files.first;
+        final file = File(pickedFile.path!);
+
+        if (await file.exists()) {
+          final appDir = await getApplicationDocumentsDirectory();
+          final fileName = pickedFile.name;
+          final timestamp = DateTime.now().millisecondsSinceEpoch;
+          final newFileName = '${timestamp}_$fileName';
+          final newPath = '${appDir.path}/$newFileName';
+
+          final savedFile = await file.copy(newPath);
+
+          setState(() {
+            _documentPath = savedFile.path;
+          });
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('✓ Document "$fileName" selected'),
+                backgroundColor: Colors.green[700],
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        }
+      }
+    } on Exception {
+      // If file picker fails, offer manual path entry
+      if (mounted) {
+        _showManualPathDialog();
+      }
+    } catch (e) {
+      if (mounted) {
+        _showManualPathDialog();
+      }
+    }
+  }
+
+  void _showManualPathDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('File Picker Issue'),
+          content: const Text(
+            'The file picker is having issues. Would you like to:\n\n'
+            '1. Skip document upload (you can add it later)\n'
+            '2. Try again',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Skip'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _pickDocument();
+              },
+              child: const Text('Try Again'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _saveExam() async {
@@ -328,20 +408,14 @@ class _AddExamScreenState extends State<AddExamScreen> {
   }
 
   Widget _buildDocumentUpload() {
+    String displayText = 'Upload Document (Optional)';
+    if (_documentPath != null) {
+      final fileName = _documentPath!.split('/').last;
+      displayText = fileName;
+    }
+
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _documentPath =
-              '/documents/exam_${DateTime.now().millisecondsSinceEpoch}.pdf';
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Document selected'),
-            backgroundColor: Colors.black,
-            duration: Duration(seconds: 1),
-          ),
-        );
-      },
+      onTap: _pickDocument,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -364,9 +438,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                _documentPath == null
-                    ? 'Upload Document (Optional)'
-                    : 'Document Selected',
+                displayText,
                 style: TextStyle(
                   color: _documentPath == null
                       ? Colors.grey[700]
@@ -376,6 +448,8 @@ class _AddExamScreenState extends State<AddExamScreen> {
                       ? FontWeight.normal
                       : FontWeight.w600,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             Icon(Icons.cloud_upload_outlined, color: Colors.grey[600]),
