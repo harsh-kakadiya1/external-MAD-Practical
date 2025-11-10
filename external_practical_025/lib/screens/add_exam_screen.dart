@@ -14,11 +14,13 @@ class AddExamScreen extends StatefulWidget {
 }
 
 class _AddExamScreenState extends State<AddExamScreen> {
+  // Form key and controllers
   final _formKey = GlobalKey<FormState>();
   final _courseCodeController = TextEditingController();
   final _courseNameController = TextEditingController();
   final _venueController = TextEditingController();
 
+  // State variables
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   String? _documentPath;
@@ -31,6 +33,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
     super.dispose();
   }
 
+  // Date and time picker methods
   Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -83,6 +86,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
     }
   }
 
+  // Document picker with error handling
   Future<void> _pickDocument() async {
     try {
       final result = await FilePicker.platform.pickFiles();
@@ -94,6 +98,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
         final file = File(pickedFile.path!);
 
         if (await file.exists()) {
+          // Save file to app directory
           final appDir = await getApplicationDocumentsDirectory();
           final fileName = pickedFile.name;
           final timestamp = DateTime.now().millisecondsSinceEpoch;

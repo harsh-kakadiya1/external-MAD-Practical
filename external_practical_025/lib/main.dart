@@ -4,10 +4,12 @@ import 'screens/add_exam_screen.dart';
 import 'screens/exam_detail_screen.dart';
 import 'models/exam.dart';
 
+/// Entry point of the Exam Timetable application
 void main() {
   runApp(const MyApp());
 }
 
+/// Root widget that configures app theme and routes
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -22,6 +24,7 @@ class MyApp extends StatelessWidget {
       ),
       home: const ExamListScreen(),
       routes: {'/add-exam': (context) => const AddExamScreen()},
+      // Dynamic route for exam details
       onGenerateRoute: (settings) {
         if (settings.name == '/exam-detail') {
           final exam = settings.arguments as Exam;

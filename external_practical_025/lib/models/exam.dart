@@ -1,3 +1,4 @@
+/// Model class representing an exam entry in the timetable
 class Exam {
   String id;
   String courseCode;
@@ -5,7 +6,7 @@ class Exam {
   DateTime date;
   String time;
   String venue;
-  String? documentPath;
+  String? documentPath; // Optional path to attached document
 
   Exam({
     required this.id,
@@ -17,6 +18,7 @@ class Exam {
     this.documentPath,
   });
 
+  /// Convert exam to JSON for storage
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -29,6 +31,7 @@ class Exam {
     };
   }
 
+  /// Create exam from JSON data
   factory Exam.fromJson(Map<String, dynamic> json) {
     return Exam(
       id: json['id'],

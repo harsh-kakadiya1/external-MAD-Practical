@@ -11,6 +11,7 @@ class ExamListScreen extends StatefulWidget {
 }
 
 class _ExamListScreenState extends State<ExamListScreen> {
+  // State variables
   List<Exam> exams = [];
   List<Exam> filteredExams = [];
   bool isLoading = true;
@@ -28,11 +29,12 @@ class _ExamListScreenState extends State<ExamListScreen> {
     super.dispose();
   }
 
+  // Data management methods
   Future<void> _loadExams() async {
     final loadedExams = await StorageHelper.loadExams();
     setState(() {
       exams = loadedExams;
-      exams.sort((a, b) => a.date.compareTo(b.date));
+      exams.sort((a, b) => a.date.compareTo(b.date)); // Sort by date
       filteredExams = exams;
       isLoading = false;
     });
@@ -43,6 +45,7 @@ class _ExamListScreenState extends State<ExamListScreen> {
       if (query.isEmpty) {
         filteredExams = exams;
       } else {
+        // Filter by course code or name
         filteredExams = exams.where((exam) {
           final courseCodeMatch = exam.courseCode.toLowerCase().contains(
             query.toLowerCase(),
@@ -56,6 +59,7 @@ class _ExamListScreenState extends State<ExamListScreen> {
     });
   }
 
+  // Navigation
   void _navigateToAddExam() async {
     final result = await Navigator.pushNamed(context, '/add-exam');
     if (result == true) {
@@ -63,6 +67,7 @@ class _ExamListScreenState extends State<ExamListScreen> {
     }
   }
 
+  // Helper methods
   Exam? _getNextExam() {
     final now = DateTime.now();
     final upcomingExams = exams.where((exam) {

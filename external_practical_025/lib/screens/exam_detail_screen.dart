@@ -4,11 +4,13 @@ import 'dart:io';
 import 'package:open_file/open_file.dart';
 import '../models/exam.dart';
 
+/// Screen displaying full details of a selected exam
 class ExamDetailScreen extends StatelessWidget {
   final Exam exam;
 
   const ExamDetailScreen({super.key, required this.exam});
 
+  /// Opens the attached document using system default app
   Future<void> _openDocument() async {
     if (exam.documentPath != null) {
       final file = File(exam.documentPath!);

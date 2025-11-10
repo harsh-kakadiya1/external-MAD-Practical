@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import '../models/exam.dart';
 import 'package:intl/intl.dart';
 
+/// Reusable widget for displaying exam information in a card format
 class ExamCard extends StatelessWidget {
   final Exam exam;
-  final bool isNext;
+  final bool isNext; // Highlights the next upcoming exam
 
   const ExamCard({super.key, required this.exam, this.isNext = false});
 
